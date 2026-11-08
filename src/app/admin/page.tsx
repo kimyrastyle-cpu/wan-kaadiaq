@@ -5,7 +5,8 @@ import type { Order } from "@prisma/client";
 import { isAdmin } from "@/lib/admin-auth";
 import { db } from "@/lib/db";
 import { PRODUCT, formatAddress, formatRM } from "@/lib/product";
-import { logout, markShipped, undoShipped } from "./actions";
+import { markShipped, undoShipped } from "./actions";
+import { AdminNav } from "./admin-nav";
 import { LoginForm } from "./login-form";
 
 export const metadata: Metadata = {
@@ -80,12 +81,8 @@ async function Dashboard({ tab }: { tab: TabKey }) {
 
   return (
     <>
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Order baju</h1>
-        <form action={logout}>
-          <button className="text-sm text-muted hover:text-foreground">Log keluar</button>
-        </form>
-      </div>
+      <AdminNav current="order" />
+      <h1 className="mt-6 text-2xl font-bold">Order baju</h1>
 
       <section className="mt-6 grid gap-3 sm:grid-cols-3">
         <Stat label="Jumlah jualan (dah bayar)" value={formatRM(sold._sum.amountCents ?? 0)} />

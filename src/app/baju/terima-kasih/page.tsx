@@ -38,7 +38,7 @@ async function OrderStatus({
   if (order.status === "PAID" || order.status === "SHIPPED") {
     return (
       <Message
-        title="Terima kasih! 🖤"
+        title="TERIMA KASIH ABANG KAKAK !"
         body={`Bayaran ${formatRM(order.amountCents)} diterima. Baju saiz ${order.size} × ${order.quantity} akan dipos ke alamat anda. No. rujukan: ${ref}`}
       />
     );

@@ -36,34 +36,17 @@ model Order {
 
 // ---------- Booking barbershop ----------
 
-model Barber {
-  id       String    @id @default(cuid())
-  name     String
-  active   Boolean   @default(true)
-  bookings Booking[]
-}
-
-model Service {
-  id              String    @id @default(cuid())
-  name            String
-  durationMinutes Int
-  priceCents      Int
-  active          Boolean   @default(true)
-  bookings        Booking[]
-}
-
 model Booking {
-  id            String   @id @default(cuid())
-  customerName  String
-  customerPhone String
-  barberId      String
-  serviceId     String
-  startsAt      DateTime
-  endsAt        DateTime
-  status        String   @default("CONFIRMED") // CONFIRMED, CANCELLED, DONE
-  createdAt     DateTime @default(now())
-  barber        Barber   @relation(fields: [barberId], references: [id])
-  service       Service  @relation(fields: [serviceId], references: [id])
+  id             String   @id @default(cuid())
+  customerName   String
+  customerPhone  String
+  seat           Int // 1 atau 2
+  services       String // contoh "Hair Cut + Beard Trim"
+  priceCents     Int // jumlah harga pakej (RM38 = 3800)
+  startsAt       DateTime
+  endsAt         DateTime // startsAt + jumlah tempoh pakej
+  status         String   @default("CONFIRMED") // CONFIRMED, CANCELLED
+  createdAt      DateTime @default(now())
 
-  @@index([barberId, startsAt])
+  @@index([seat, startsAt])
 }

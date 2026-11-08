@@ -5,7 +5,7 @@ export const PRODUCT = {
   name: "Five Times • One Purpose",
   tagline: "Five Times • One Purpose",
   description:
-    "Edisi pertama Wan Kaadiaq. Baju hitam potongan oversized, logo kecil di dada dan cetakan lima garisan di belakang.",
+    "Official Exclusive Release Wan Kaadiaq. Baju hitam potongan oversized, logo kecil di dada dan cetakan lima garisan di belakang.",
   priceCents: 8900, // RM89.00
   postagePerItemCents: 800, // RM8.00 sehelai
   sizes: ["S", "M", "L", "XL", "XXL"] as const,

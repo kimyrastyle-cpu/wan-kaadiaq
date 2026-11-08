@@ -35,9 +35,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               <Link href="/baju" className="hover:underline">
                 Baju
               </Link>
-              <span className="text-muted" title="Akan datang">
-                Booking
-              </span>
+              <Link href="/booking" className="hover:underline">
+                Barbershop Booking Slot
+              </Link>
             </div>
           </nav>
         </header>

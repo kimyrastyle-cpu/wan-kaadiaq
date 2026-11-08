@@ -40,6 +40,18 @@ export async function markShipped(formData: FormData) {
   revalidatePath("/admin");
 }
 
+export async function cancelBooking(formData: FormData) {
+  await requireAdmin();
+  const bookingId = String(formData.get("bookingId") ?? "");
+
+  // Booking CANCELLED tak dikira lagi, jadi masa tu boleh dibook semula.
+  await db.booking.updateMany({
+    where: { id: bookingId, status: "CONFIRMED" },
+    data: { status: "CANCELLED" },
+  });
+  revalidatePath("/admin/booking");
+}
+
 export async function undoShipped(formData: FormData) {
   await requireAdmin();
   const orderId = String(formData.get("orderId") ?? "");
