@@ -46,7 +46,7 @@ export async function createBill(order: Order) {
     billReturnUrl: `${appUrl()}/baju/terima-kasih`,
     billCallbackUrl: `${appUrl()}/api/toyyibpay/callback`,
     billExternalReferenceNo: order.id,
-    billTo: order.customerName,
+    billTo: `${order.firstName} ${order.lastName}`,
     billEmail: order.customerEmail,
     billPhone: order.customerPhone,
     billPaymentChannel: "2", // 0 = FPX, 1 = kad, 2 = kedua-dua

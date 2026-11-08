@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import type { Order } from "@prisma/client";
 import { isAdmin } from "@/lib/admin-auth";
 import { db } from "@/lib/db";
-import { PRODUCT, formatRM } from "@/lib/product";
+import { PRODUCT, formatAddress, formatRM } from "@/lib/product";
 import { logout, markShipped, undoShipped } from "./actions";
 import { LoginForm } from "./login-form";
 
@@ -155,7 +155,7 @@ function OrderCard({ order: o }: { order: Order }) {
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
           <p className="font-semibold">
-            {o.customerName}{" "}
+            {o.firstName} {o.lastName}{" "}
             <span className="ml-1 font-mono text-xs text-muted">#{o.id.slice(-8).toUpperCase()}</span>
           </p>
           <p className="text-xs text-muted">{dateFmt.format(o.createdAt)}</p>
@@ -173,7 +173,7 @@ function OrderCard({ order: o }: { order: Order }) {
           <p className="text-muted">{formatRM(o.amountCents)}</p>
         </div>
         <div className="space-y-1">
-          <p className="whitespace-pre-line">{o.address}</p>
+          <p className="whitespace-pre-line">{formatAddress(o)}</p>
           <p className="text-muted">
             <a href={`https://wa.me/${waPhone}`} target="_blank" rel="noreferrer" className="underline hover:text-foreground">
               {o.customerPhone}

@@ -29,6 +29,42 @@ export function orderTotalCents(quantity: number) {
   return { subtotal, postage, total: subtotal + postage };
 }
 
+export const MY_STATES = [
+  "Johor",
+  "Kedah",
+  "Kelantan",
+  "Melaka",
+  "Negeri Sembilan",
+  "Pahang",
+  "Perak",
+  "Perlis",
+  "Pulau Pinang",
+  "Sabah",
+  "Sarawak",
+  "Selangor",
+  "Terengganu",
+  "W.P. Kuala Lumpur",
+  "W.P. Labuan",
+  "W.P. Putrajaya",
+] as const;
+
+type Address = {
+  company: string | null;
+  address1: string;
+  address2: string | null;
+  postcode: string;
+  city: string;
+  state: string;
+  country: string;
+};
+
+// Alamat dalam format label pos, satu baris setiap elemen.
+export function formatAddress(a: Address) {
+  return [a.company, a.address1, a.address2, `${a.postcode} ${a.city}`, `${a.state}, ${a.country}`]
+    .filter(Boolean)
+    .join("\n");
+}
+
 export function formatRM(cents: number) {
   return `RM${(cents / 100).toFixed(2)}`;
 }

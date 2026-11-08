@@ -39,7 +39,7 @@ async function TestPayment({
       </p>
       <h1 className="mt-3 text-xl font-bold">Simulasi bayaran</h1>
       <p className="mt-2 text-sm text-muted">
-        {order.customerName} · saiz {order.size} × {order.quantity} ·{" "}
+        {order.firstName} {order.lastName} · saiz {order.size} × {order.quantity} ·{" "}
         <span className="font-semibold text-foreground">{formatRM(order.amountCents)}</span>
       </p>
       <form action={completeTestPayment} className="mt-6 grid grid-cols-2 gap-3">

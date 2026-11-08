@@ -12,10 +12,17 @@ datasource db {
 
 model Order {
   id             String    @id @default(cuid())
-  customerName   String
+  firstName      String
+  lastName       String
   customerEmail  String
   customerPhone  String
-  address        String
+  company        String?
+  address1       String
+  address2       String? // apartment, suite, dll.
+  postcode       String
+  city           String
+  state          String
+  country        String    @default("Malaysia")
   size           String // S, M, L, XL, XXL
   quantity       Int
   amountCents    Int // jumlah dalam sen (RM 59.00 = 5900)
