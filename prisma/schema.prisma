@@ -5,7 +5,7 @@ generator client {
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL") // pooled (Neon: URL dengan -pooler)
-  directUrl = env("DIRECT_URL") // direct, untuk migration
+  directUrl = env("DATABASE_URL_UNPOOLED") // direct, untuk migration (nama dari Vercel + Neon)
 }
 
 // ---------- Kedai baju ----------
