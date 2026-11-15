@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useState } from "react";
-import { MY_STATES, PRODUCT, formatRM, orderTotalCents } from "@/lib/product";
+import { MY_STATES, PAYMENT_PROVIDERS, PRODUCT, formatRM, orderTotalCents, type PaymentProvider } from "@/lib/product";
 import { createOrder, type OrderFormState } from "./actions";
 
 const initialState: OrderFormState = { error: null };
@@ -37,8 +37,10 @@ function SelectBox({ label, className = "", children }: { label: string; classNa
   );
 }
 
-export function OrderForm() {
+export function OrderForm({ providers }: { providers: PaymentProvider[] }) {
   const [state, formAction, pending] = useActionState(createOrder, initialState);
+  const [provider, setProvider] = useState<PaymentProvider | undefined>(providers[0]);
+  const choices = PAYMENT_PROVIDERS.filter((p) => providers.includes(p.key));
   const [size, setSize] = useState<string>("");
   const [quantity, setQuantity] = useState(1);
   const [saved, setSaved] = useState<Saved | null>(null);
@@ -190,6 +192,35 @@ export function OrderForm() {
         </div>
       </dl>
 
+      {choices.length > 1 ? (
+        <fieldset>
+          <legend className="mb-2 text-sm font-medium">Cara bayaran</legend>
+          <div className="grid grid-cols-2 gap-2">
+            {choices.map((p) => (
+              <label
+                key={p.key}
+                className={`cursor-pointer rounded-lg border px-3 py-2.5 text-sm transition ${
+                  provider === p.key ? "border-foreground bg-card" : "border-line hover:border-muted"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="provider"
+                  value={p.key}
+                  checked={provider === p.key}
+                  onChange={() => setProvider(p.key)}
+                  className="sr-only"
+                />
+                <span className="block font-semibold">{p.label}</span>
+                <span className="block text-xs text-muted">{p.hint}</span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      ) : (
+        provider && <input type="hidden" name="provider" value={provider} />
+      )}
+
       {state.error && (
         <p role="alert" className="text-sm text-danger">
           {state.error}
@@ -201,7 +232,7 @@ export function OrderForm() {
         disabled={pending}
         className="w-full rounded-full bg-foreground py-3.5 text-sm font-semibold text-background hover:opacity-90 disabled:opacity-50"
       >
-        {pending ? "Sedang proses…" : `Bayar ${formatRM(total)} (FPX / Kad)`}
+        {pending ? "Sedang proses…" : `Bayar ${formatRM(total)}`}
       </button>
     </form>
   );

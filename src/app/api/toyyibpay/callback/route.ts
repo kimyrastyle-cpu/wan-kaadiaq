@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { syncOrderPayment } from "@/lib/toyyibpay";
+import { syncOrderPayment } from "@/lib/payment";
 
 // ToyyibPay POST ke sini lepas bayaran. Kita tak percaya isi request —
 // cuma guna billcode untuk cari order, kemudian semak status terus dengan ToyyibPay.

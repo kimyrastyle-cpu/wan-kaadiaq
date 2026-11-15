@@ -8,6 +8,7 @@ export const PRODUCT = {
     "Official Exclusive Release Wan Kaadiaq. Baju hitam potongan oversized, logo kecil di dada dan cetakan lima garisan di belakang.",
   priceCents: 8900, // RM89.00
   postagePerItemCents: 800, // RM8.00 sehelai
+  weightKg: 0.25, // berat sehelai bersama bungkusan, untuk consignment J&T
   sizes: ["S", "M", "L", "XL", "XXL"] as const,
   maxQuantity: 10,
   images: [
@@ -68,3 +69,11 @@ export function formatAddress(a: Address) {
 export function formatRM(cents: number) {
   return `RM${(cents / 100).toFixed(2)}`;
 }
+
+// Gateway bayaran. Yang ditunjuk pada pelanggan hanya yang ada key dalam .env.
+export const PAYMENT_PROVIDERS = [
+  { key: "CHIP", label: "CHIP", hint: "FPX · Kad · e-Wallet" },
+  { key: "TOYYIBPAY", label: "ToyyibPay", hint: "FPX · Kad" },
+] as const;
+
+export type PaymentProvider = (typeof PAYMENT_PROVIDERS)[number]["key"];

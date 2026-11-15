@@ -2,9 +2,10 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { db } from "@/lib/db";
 import { formatRM } from "@/lib/product";
-import { syncOrderPayment } from "@/lib/toyyibpay";
+import { syncOrderPayment } from "@/lib/payment";
 
-// ToyyibPay hantar balik ke sini dengan ?status_id=..&billcode=..&order_id=..
+// ToyyibPay hantar balik ke sini dengan ?status_id=..&billcode=..&order_id=..,
+// CHIP dengan ?order_id=.. sahaja.
 export default function TerimaKasihPage({
   searchParams,
 }: PageProps<"/baju/terima-kasih">) {
@@ -35,6 +36,16 @@ async function OrderStatus({
   const order = await syncOrderPayment(found);
   const ref = order.id.slice(-8).toUpperCase();
 
+  if (order.status === "SHIPPED" && order.trackingNumber) {
+    return (
+      <Message
+        title="BAJU DAH DIPOS !"
+        body={`Baju saiz ${order.size} × ${order.quantity} dalam perjalanan. No. tracking J&T: ${order.trackingNumber}. No. rujukan: ${ref}`}
+        trackingUrl={`https://www.jtexpress.my/tracking/${encodeURIComponent(order.trackingNumber)}`}
+      />
+    );
+  }
+
   if (order.status === "PAID" || order.status === "SHIPPED") {
     return (
       <Message
@@ -62,11 +73,28 @@ async function OrderStatus({
   );
 }
 
-function Message({ title, body, retry }: { title: string; body: string; retry?: boolean }) {
+function Message({
+  title,
+  body,
+  retry,
+  trackingUrl,
+}: {
+  title: string;
+  body: string;
+  retry?: boolean;
+  trackingUrl?: string;
+}) {
   return (
     <>
       <h1 className="text-2xl font-bold">{title}</h1>
       <p className="mt-3 text-sm leading-relaxed text-muted">{body}</p>
+      {trackingUrl && (
+        <p className="mt-4 text-sm">
+          <a href={trackingUrl} target="_blank" rel="noreferrer" className="underline hover:text-muted">
+            Semak status penghantaran
+          </a>
+        </p>
+      )}
       <Link
         href={retry ? "/baju" : "/"}
         className="mt-8 inline-block rounded-full bg-foreground px-6 py-3 text-sm font-semibold text-background"

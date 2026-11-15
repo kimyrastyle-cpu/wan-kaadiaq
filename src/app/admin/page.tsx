@@ -4,8 +4,9 @@ import { Suspense } from "react";
 import type { Order } from "@prisma/client";
 import { isAdmin } from "@/lib/admin-auth";
 import { db } from "@/lib/db";
+import { jntConfigured, jntTrackingUrl } from "@/lib/jnt";
 import { PRODUCT, formatAddress, formatRM } from "@/lib/product";
-import { markShipped, undoShipped } from "./actions";
+import { createJntShipment, markShipped, undoShipped } from "./actions";
 import { AdminNav } from "./admin-nav";
 import { LoginForm } from "./login-form";
 
@@ -47,12 +48,13 @@ async function AdminGate({
 }) {
   if (!(await isAdmin())) return <LoginForm />;
 
-  const { status } = await searchParams;
+  const { status, ralat } = await searchParams;
   const tab: TabKey = TABS.some((t) => t.key === status) ? (status as TabKey) : "PAID";
-  return <Dashboard tab={tab} />;
+  return <Dashboard tab={tab} error={typeof ralat === "string" ? ralat : undefined} />;
 }
 
-async function Dashboard({ tab }: { tab: TabKey }) {
+async function Dashboard({ tab, error }: { tab: TabKey; error?: string }) {
+  const jnt = jntConfigured();
   const [orders, counts, sold, toShipBySize] = await Promise.all([
     db.order.findMany({
       where: tab === "ALL" ? {} : { status: tab },
@@ -83,6 +85,12 @@ async function Dashboard({ tab }: { tab: TabKey }) {
     <>
       <AdminNav current="order" />
       <h1 className="mt-6 text-2xl font-bold">Order baju</h1>
+
+      {error && (
+        <p role="alert" className="mt-4 rounded-lg border border-danger/40 px-4 py-3 text-sm text-danger">
+          {error}
+        </p>
+      )}
 
       <section className="mt-6 grid gap-3 sm:grid-cols-3">
         <Stat label="Jumlah jualan (dah bayar)" value={formatRM(sold._sum.amountCents ?? 0)} />
@@ -119,7 +127,7 @@ async function Dashboard({ tab }: { tab: TabKey }) {
       ) : (
         <ul className="mt-4 space-y-3">
           {orders.map((o) => (
-            <OrderCard key={o.id} order={o} />
+            <OrderCard key={o.id} order={o} jnt={jnt} />
           ))}
         </ul>
       )}
@@ -143,7 +151,7 @@ const STATUS_LABEL: Record<string, { text: string; className: string }> = {
   FAILED: { text: "Gagal", className: "text-danger border-danger/40" },
 };
 
-function OrderCard({ order: o }: { order: Order }) {
+function OrderCard({ order: o, jnt }: { order: Order; jnt: boolean }) {
   const status = STATUS_LABEL[o.status] ?? STATUS_LABEL.PENDING;
   const waPhone = o.customerPhone.startsWith("0") ? `6${o.customerPhone}` : o.customerPhone;
 
@@ -179,23 +187,53 @@ function OrderCard({ order: o }: { order: Order }) {
           </p>
           {o.trackingNumber && (
             <p>
-              Tracking: <span className="font-mono">{o.trackingNumber}</span>
+              Tracking:{" "}
+              <a
+                href={jntTrackingUrl(o.trackingNumber)}
+                target="_blank"
+                rel="noreferrer"
+                className="font-mono underline hover:text-muted"
+              >
+                {o.trackingNumber}
+              </a>
+              {o.jntOrderId && jnt && (
+                <>
+                  {" · "}
+                  <a href={`/admin/label?order=${o.id}`} target="_blank" rel="noreferrer" className="underline hover:text-muted">
+                    Cetak label J&T
+                  </a>
+                </>
+              )}
             </p>
           )}
         </div>
 
         {o.status === "PAID" && (
-          <form action={markShipped} className="flex gap-2 sm:flex-col">
-            <input type="hidden" name="orderId" value={o.id} />
-            <input
-              name="trackingNumber"
-              placeholder="No. tracking (pilihan)"
-              className="min-w-0 flex-1 rounded-lg border border-line bg-background px-3 py-2 text-sm outline-none focus:border-foreground"
-            />
-            <button className="whitespace-nowrap rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background">
-              Tanda dah pos
-            </button>
-          </form>
+          <div className="space-y-3">
+            {jnt && (
+              <form action={createJntShipment}>
+                <input type="hidden" name="orderId" value={o.id} />
+                <button className="w-full whitespace-nowrap rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background">
+                  Buat consignment J&T
+                </button>
+              </form>
+            )}
+            <form action={markShipped} className="flex gap-2 sm:flex-col">
+              <input type="hidden" name="orderId" value={o.id} />
+              <input
+                name="trackingNumber"
+                placeholder={jnt ? "Atau isi no. tracking sendiri" : "No. tracking (pilihan)"}
+                className="min-w-0 flex-1 rounded-lg border border-line bg-background px-3 py-2 text-sm outline-none focus:border-foreground"
+              />
+              <button
+                className={`whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold ${
+                  jnt ? "border border-line" : "bg-foreground text-background"
+                }`}
+              >
+                Tanda dah pos
+              </button>
+            </form>
+          </div>
         )}
         {o.status === "SHIPPED" && (
           <form action={undoShipped}>

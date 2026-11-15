@@ -11,42 +11,45 @@ datasource db {
 // ---------- Kedai baju ----------
 
 model Order {
-  id             String    @id @default(cuid())
-  firstName      String
-  lastName       String
-  customerEmail  String
-  customerPhone  String
-  company        String?
-  address1       String
-  address2       String? // apartment, suite, dll.
-  postcode       String
-  city           String
-  state          String
-  country        String    @default("Malaysia")
-  size           String // S, M, L, XL, XXL
-  quantity       Int
-  amountCents    Int // jumlah dalam sen (RM 59.00 = 5900)
-  status         String    @default("PENDING") // PENDING, PAID, FAILED, SHIPPED
-  billCode       String?   @unique // kod bil dari ToyyibPay
-  trackingNumber String? // no. tracking kurier bila dah pos
-  shippedAt      DateTime?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  id              String    @id @default(cuid())
+  firstName       String
+  lastName        String
+  customerEmail   String
+  customerPhone   String
+  company         String?
+  address1        String
+  address2        String? // apartment, suite, dll.
+  postcode        String
+  city            String
+  state           String
+  country         String    @default("Malaysia")
+  size            String // S, M, L, XL, XXL
+  quantity        Int
+  amountCents     Int // jumlah dalam sen (RM 59.00 = 5900)
+  status          String    @default("PENDING") // PENDING, PAID, FAILED, SHIPPED
+  paymentProvider String? // TOYYIBPAY atau CHIP
+  billCode        String?   @unique // kod bil dari ToyyibPay
+  chipPurchaseId  String?   @unique // id purchase dari CHIP
+  trackingNumber  String? // no. tracking kurier (AWB J&T) bila dah pos
+  jntOrderId      String? // no. order yang dihantar ke J&T (untuk batal consignment)
+  shippedAt       DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 }
 
 // ---------- Booking barbershop ----------
 
 model Booking {
-  id             String   @id @default(cuid())
-  customerName   String
-  customerPhone  String
-  seat           Int // 1 atau 2
-  services       String // contoh "Hair Cut + Beard Trim"
-  priceCents     Int // jumlah harga pakej (RM38 = 3800)
-  startsAt       DateTime
-  endsAt         DateTime // startsAt + jumlah tempoh pakej
-  status         String   @default("CONFIRMED") // CONFIRMED, CANCELLED
-  createdAt      DateTime @default(now())
+  id            String   @id @default(cuid())
+  customerName  String
+  customerPhone String
+  seat          Int // 1 atau 2
+  services      String // contoh "Hair Cut + Beard Trim"
+  priceCents    Int // jumlah harga pakej (RM38 = 3800)
+  startsAt      DateTime
+  endsAt        DateTime // startsAt + jumlah tempoh pakej
+  status        String   @default("CONFIRMED") // CONFIRMED, CANCELLED
+  createdAt     DateTime @default(now())
 
   @@index([seat, startsAt])
 }
