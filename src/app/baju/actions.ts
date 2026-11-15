@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
-import { availableProviders, startPayment, testPaymentAllowed } from "@/lib/payment";
+import { chipConfigured, startPayment, testPaymentAllowed } from "@/lib/payment";
 import { MY_STATES, PRODUCT, isSize, orderTotalCents } from "@/lib/product";
 
 // Medan alamat yang dihantar balik bila ada error, supaya borang tak kosong semula.
@@ -62,10 +62,7 @@ export async function createOrder(
     return fail("Nombor telefon tak sah (contoh 0123456789).");
   }
 
-  // Gateway dipilih pelanggan bila ada lebih dari satu; kalau tak, guna yang ada.
-  const providers = availableProviders();
-  const provider = providers.find((p) => p === text(formData, "provider")) ?? providers[0];
-  if (!provider && !testPaymentAllowed()) return fail("Sistem bayaran belum disediakan.");
+  if (!chipConfigured() && !testPaymentAllowed()) return fail("Sistem bayaran belum disediakan.");
 
   // Harga dikira di server, bukan dari browser.
   const { total } = orderTotalCents(quantity);
@@ -88,10 +85,10 @@ export async function createOrder(
     },
   });
 
-  if (provider) {
+  if (chipConfigured()) {
     let paymentUrl: string;
     try {
-      paymentUrl = await startPayment(order, provider);
+      paymentUrl = await startPayment(order);
     } catch (err) {
       console.error(err);
       return fail("Tak dapat sambung ke sistem bayaran. Cuba lagi sebentar.");
@@ -102,7 +99,7 @@ export async function createOrder(
   redirect(`/baju/bayar-test?order=${order.id}`);
 }
 
-// Hanya untuk mod test (tiada key gateway, bukan production).
+// Hanya untuk mod test (tiada key CHIP, bukan production).
 export async function completeTestPayment(formData: FormData) {
   if (!testPaymentAllowed()) throw new Error("Mod test tidak dibenarkan.");
 

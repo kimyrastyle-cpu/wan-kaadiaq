@@ -1,6 +1,6 @@
 # Wan Kaadiaq
 
-Website kedai baju dan booking barbershop. Next.js 16 + Prisma + Postgres, bayaran melalui CHIP / ToyyibPay, pos melalui J&T Express.
+Website kedai baju dan booking barbershop. Next.js 16 + Prisma + Postgres, bayaran melalui CHIP, pos melalui J&T Express.
 
 ## Jalankan dalam PC
 
@@ -12,7 +12,7 @@ npm run dev
 `npm run dev` akan start database Postgres tempatan (`prisma dev`) secara automatik.
 Buka http://localhost:3000. Page admin: http://localhost:3000/admin (password dalam `.env`).
 
-Tanpa key CHIP atau ToyyibPay dalam `.env`, checkout guna page bayaran test (development sahaja).
+Tanpa key CHIP dalam `.env`, checkout guna page bayaran test (development sahaja).
 
 ## Live (Vercel + Neon + domain Spaceship)
 
@@ -24,16 +24,11 @@ Tanpa key CHIP atau ToyyibPay dalam `.env`, checkout guna page bayaran test (dev
 
 Senarai setting penuh: lihat `.env.example`.
 
-## Bayaran (CHIP / ToyyibPay)
+## Bayaran (CHIP)
 
-Isi key gateway yang nak diguna dalam `.env` / Vercel. Kalau dua-dua diisi, pelanggan
-pilih cara bayaran masa checkout; kalau satu sahaja, terus ke gateway tu.
-
-- **CHIP**: `CHIP_SECRET_KEY` dan `CHIP_BRAND_ID` dari portal CHIP → Developers.
-  Tak perlu daftar webhook; callback dihantar terus ke `/api/chip/callback`.
-- **ToyyibPay**: `TOYYIBPAY_SECRET_KEY` dan `TOYYIBPAY_CATEGORY_CODE`.
-
-Status bayaran sentiasa disemak terus dengan gateway, bukan dari isi callback.
+Isi `CHIP_SECRET_KEY` dan `CHIP_BRAND_ID` (portal CHIP → Developers) dalam `.env` / Vercel.
+Tak perlu daftar webhook; callback dihantar terus ke `/api/chip/callback`.
+Status bayaran sentiasa disemak terus dengan CHIP, bukan dari isi callback.
 
 ## Pos (J&T Express)
 

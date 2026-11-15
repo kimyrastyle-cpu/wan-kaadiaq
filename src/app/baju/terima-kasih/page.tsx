@@ -4,8 +4,7 @@ import { db } from "@/lib/db";
 import { formatRM } from "@/lib/product";
 import { syncOrderPayment } from "@/lib/payment";
 
-// ToyyibPay hantar balik ke sini dengan ?status_id=..&billcode=..&order_id=..,
-// CHIP dengan ?order_id=.. sahaja.
+// CHIP hantar pelanggan balik ke sini dengan ?order_id=..
 export default function TerimaKasihPage({
   searchParams,
 }: PageProps<"/baju/terima-kasih">) {

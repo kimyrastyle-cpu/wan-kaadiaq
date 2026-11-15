@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import { availableProviders } from "@/lib/payment";
 import { BRAND, PRODUCT, formatRM } from "@/lib/product";
 import { OrderForm } from "./order-form";
 
@@ -34,7 +33,7 @@ export default function BajuPage() {
         <p className="mt-3 text-2xl font-semibold">{formatRM(PRODUCT.priceCents)}</p>
         <p className="mt-4 text-sm leading-relaxed text-muted">{PRODUCT.description}</p>
         <div className="mt-8">
-          <OrderForm providers={availableProviders()} />
+          <OrderForm />
         </div>
       </div>
     </div>

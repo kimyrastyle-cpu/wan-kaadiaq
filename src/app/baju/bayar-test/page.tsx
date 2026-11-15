@@ -5,7 +5,7 @@ import { formatRM } from "@/lib/product";
 import { testPaymentAllowed } from "@/lib/payment";
 import { completeTestPayment } from "../actions";
 
-// Page bayaran palsu untuk test semasa development (sebelum ada key ToyyibPay).
+// Page bayaran palsu untuk test semasa development (sebelum ada key CHIP).
 export default function BayarTestPage({
   searchParams,
 }: PageProps<"/baju/bayar-test">) {
