@@ -29,7 +29,12 @@ model Order {
   status         String    @default("PENDING") // PENDING, PAID, FAILED, SHIPPED
   billCode       String?   @unique // kod bil dari ToyyibPay
   trackingNumber String? // no. tracking kurier bila dah pos
+  courier        String? // nama kurier, contoh "J&T Express"
+  trackingUrl    String? // link semak tracking (dari EasyParcel)
+  labelUrl       String? // link PDF label / AWB (dari EasyParcel)
+  epOrderNo      String? // no. order EasyParcel, contoh "EI-5UFAI"
   shippedAt      DateTime?
+  emailedAt      DateTime? // bila email "dah dipos" berjaya dihantar
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 }
