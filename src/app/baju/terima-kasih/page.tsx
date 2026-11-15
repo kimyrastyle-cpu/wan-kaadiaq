@@ -39,8 +39,8 @@ async function OrderStatus({
     return (
       <Message
         title="BAJU DAH DIPOS !"
-        body={`Baju saiz ${order.size} × ${order.quantity} dalam perjalanan. No. tracking J&T: ${order.trackingNumber}. No. rujukan: ${ref}`}
-        trackingUrl={`https://www.jtexpress.my/tracking/${encodeURIComponent(order.trackingNumber)}`}
+        body={`Baju saiz ${order.size} × ${order.quantity} dalam perjalanan. No. tracking${order.courier ? ` ${order.courier}` : ""}: ${order.trackingNumber}. No. rujukan: ${ref}`}
+        trackingUrl={order.trackingUrl ?? undefined}
       />
     );
   }

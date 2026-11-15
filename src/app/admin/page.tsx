@@ -4,9 +4,10 @@ import { Suspense } from "react";
 import type { Order } from "@prisma/client";
 import { isAdmin } from "@/lib/admin-auth";
 import { db } from "@/lib/db";
-import { jntConfigured, jntTrackingUrl } from "@/lib/jnt";
+import { jntConfigured } from "@/lib/jnt";
 import { PRODUCT, formatAddress, formatRM } from "@/lib/product";
-import { createJntShipment, markShipped, undoShipped } from "./actions";
+import { whatsappLink } from "@/lib/notify";
+import { createJntShipment, markShipped, resendShippedEmail, undoShipped } from "./actions";
 import { AdminNav } from "./admin-nav";
 import { LoginForm } from "./login-form";
 
@@ -153,7 +154,7 @@ const STATUS_LABEL: Record<string, { text: string; className: string }> = {
 
 function OrderCard({ order: o, jnt }: { order: Order; jnt: boolean }) {
   const status = STATUS_LABEL[o.status] ?? STATUS_LABEL.PENDING;
-  const waPhone = o.customerPhone.startsWith("0") ? `6${o.customerPhone}` : o.customerPhone;
+  const showWhatsApp = o.status === "PAID" || o.status === "SHIPPED";
 
   return (
     <li className="rounded-xl border border-line bg-card p-4">
@@ -180,36 +181,80 @@ function OrderCard({ order: o, jnt }: { order: Order; jnt: boolean }) {
         <div className="space-y-1">
           <p className="whitespace-pre-line">{formatAddress(o)}</p>
           <p className="text-muted">
-            <a href={`https://wa.me/${waPhone}`} target="_blank" rel="noreferrer" className="underline hover:text-foreground">
-              {o.customerPhone}
-            </a>{" "}
-            · {o.customerEmail}
+            {o.customerPhone} · {o.customerEmail}
           </p>
-          {o.trackingNumber && (
+          {(o.courier || o.trackingNumber) && (
             <p>
-              Tracking:{" "}
-              <a
-                href={jntTrackingUrl(o.trackingNumber)}
-                target="_blank"
-                rel="noreferrer"
-                className="font-mono underline hover:text-muted"
-              >
-                {o.trackingNumber}
-              </a>
-              {o.jntOrderId && jnt && (
+              {o.courier && <>{o.courier} · </>}
+              {o.trackingNumber && (
                 <>
-                  {" · "}
-                  <a href={`/admin/label?order=${o.id}`} target="_blank" rel="noreferrer" className="underline hover:text-muted">
-                    Cetak label J&T
-                  </a>
+                  Tracking:{" "}
+                  {o.trackingUrl ? (
+                    <a href={o.trackingUrl} target="_blank" rel="noreferrer" className="font-mono underline">
+                      {o.trackingNumber}
+                    </a>
+                  ) : (
+                    <span className="font-mono">{o.trackingNumber}</span>
+                  )}
                 </>
               )}
             </p>
           )}
+          {o.epOrderNo && o.status === "PAID" && (
+            <p className="text-xs text-danger">
+              Order EasyParcel {o.epOrderNo} belum dibayar — buka &quot;Pos guna EasyParcel&quot; untuk sambung.
+            </p>
+          )}
+          {o.status === "SHIPPED" && (
+            <p className="text-xs text-muted">
+              {o.emailedAt ? `✓ Email dihantar ${dateFmt.format(o.emailedAt)}` : "Email belum dihantar"}
+            </p>
+          )}
+
+          <div className="flex flex-wrap gap-2 pt-2">
+            {showWhatsApp && (
+              <a
+                href={whatsappLink(o)}
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-full border border-success/50 px-3 py-1.5 text-xs font-semibold text-success hover:bg-success/10"
+              >
+                WhatsApp customer
+              </a>
+            )}
+            {o.labelUrl && (
+              <a
+                href={o.labelUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-full border border-line px-3 py-1.5 text-xs font-semibold hover:border-foreground"
+              >
+                Cetak label (PDF)
+              </a>
+            )}
+            {o.jntOrderId && jnt && (
+              <a
+                href={`/admin/label?order=${o.id}`}
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-full border border-line px-3 py-1.5 text-xs font-semibold hover:border-foreground"
+              >
+                Cetak label J&T (PDF)
+              </a>
+            )}
+            {o.status === "SHIPPED" && !o.emailedAt && (
+              <form action={resendShippedEmail}>
+                <input type="hidden" name="orderId" value={o.id} />
+                <button className="rounded-full border border-line px-3 py-1.5 text-xs font-semibold hover:border-foreground">
+                  Hantar email
+                </button>
+              </form>
+            )}
+          </div>
         </div>
 
         {o.status === "PAID" && (
-          <div className="space-y-3">
+          <div className="flex flex-col gap-2 sm:w-56">
             {jnt && (
               <form action={createJntShipment}>
                 <input type="hidden" name="orderId" value={o.id} />
@@ -218,24 +263,38 @@ function OrderCard({ order: o, jnt }: { order: Order; jnt: boolean }) {
                 </button>
               </form>
             )}
-            <form action={markShipped} className="flex gap-2 sm:flex-col">
-              <input type="hidden" name="orderId" value={o.id} />
-              <input
-                name="trackingNumber"
-                placeholder={jnt ? "Atau isi no. tracking sendiri" : "No. tracking (pilihan)"}
-                className="min-w-0 flex-1 rounded-lg border border-line bg-background px-3 py-2 text-sm outline-none focus:border-foreground"
-              />
-              <button
-                className={`whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold ${
-                  jnt ? "border border-line" : "bg-foreground text-background"
-                }`}
-              >
-                Tanda dah pos
-              </button>
-            </form>
+            <Link
+              href={`/admin/pos/${o.id}`}
+              className={`whitespace-nowrap rounded-full px-4 py-2 text-center text-sm font-semibold ${
+                jnt ? "border border-foreground" : "bg-foreground text-background"
+              }`}
+            >
+              Pos guna EasyParcel
+            </Link>
+            <details className="text-sm">
+              <summary className="cursor-pointer text-xs text-muted hover:text-foreground">
+                Atau dah pos sendiri?
+              </summary>
+              <form action={markShipped} className="mt-2 flex flex-col gap-2">
+                <input type="hidden" name="orderId" value={o.id} />
+                <input
+                  name="courier"
+                  placeholder="Kurier (cth J&T)"
+                  className="rounded-lg border border-line bg-background px-3 py-2 text-sm outline-none focus:border-foreground"
+                />
+                <input
+                  name="trackingNumber"
+                  placeholder="No. tracking"
+                  className="rounded-lg border border-line bg-background px-3 py-2 text-sm outline-none focus:border-foreground"
+                />
+                <button className="rounded-full border border-foreground px-4 py-2 text-sm font-semibold">
+                  Tanda dah pos
+                </button>
+              </form>
+            </details>
           </div>
         )}
-        {o.status === "SHIPPED" && (
+        {o.status === "SHIPPED" && !o.labelUrl && (
           <form action={undoShipped}>
             <input type="hidden" name="orderId" value={o.id} />
             <button className="text-xs text-muted underline hover:text-foreground">Batal tanda pos</button>

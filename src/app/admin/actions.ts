@@ -9,7 +9,9 @@ import {
   startAdminSession,
 } from "@/lib/admin-auth";
 import { db } from "@/lib/db";
-import { cancelJntOrder, createJntOrder, jntConfigured } from "@/lib/jnt";
+import { bookShipment } from "@/lib/easyparcel";
+import { sendShippedEmail } from "@/lib/email";
+import { cancelJntOrder, createJntOrder, jntConfigured, jntTrackingUrl } from "@/lib/jnt";
 
 export type LoginState = { error: string | null };
 
@@ -33,12 +35,45 @@ export async function markShipped(formData: FormData) {
   await requireAdmin();
   const orderId = String(formData.get("orderId") ?? "");
   const trackingNumber = String(formData.get("trackingNumber") ?? "").trim() || null;
+  const courier = String(formData.get("courier") ?? "").trim() || null;
 
-  await db.order.updateMany({
+  const { count } = await db.order.updateMany({
     where: { id: orderId, status: "PAID" },
-    data: { status: "SHIPPED", trackingNumber, shippedAt: new Date() },
+    data: { status: "SHIPPED", trackingNumber, courier, shippedAt: new Date() },
   });
+  if (count) {
+    const order = await db.order.findUniqueOrThrow({ where: { id: orderId } });
+    await sendShippedEmail(order); // gagal pun tak apa — admin nampak butang "Hantar email"
+  }
   revalidatePath("/admin");
+}
+
+export async function resendShippedEmail(formData: FormData) {
+  await requireAdmin();
+  const order = await db.order.findUnique({ where: { id: String(formData.get("orderId") ?? "") } });
+  if (order?.status === "SHIPPED") await sendShippedEmail(order);
+  revalidatePath("/admin");
+}
+
+export type ShipState = { error: string | null };
+
+export async function bookEasyParcel(_prev: ShipState, formData: FormData): Promise<ShipState> {
+  await requireAdmin();
+  const orderId = String(formData.get("orderId") ?? "");
+  const serviceId = String(formData.get("serviceId") ?? "");
+  const order = await db.order.findUnique({ where: { id: orderId } });
+  if (!order) return { error: "Order tak jumpa." };
+  if (!serviceId && !order.epOrderNo) return { error: "Pilih kurier dulu." };
+
+  try {
+    const shipped = await bookShipment(order, serviceId);
+    await sendShippedEmail(shipped);
+  } catch (err) {
+    revalidatePath(`/admin/pos/${orderId}`);
+    return { error: err instanceof Error ? err.message : "EasyParcel gagal." };
+  }
+  revalidatePath("/admin");
+  redirect("/admin?status=SHIPPED");
 }
 
 export async function cancelBooking(formData: FormData) {
@@ -64,10 +99,20 @@ export async function createJntShipment(formData: FormData) {
   let error = "";
   try {
     const { awb, jntOrderId } = await createJntOrder(order);
-    await db.order.updateMany({
+    const { count } = await db.order.updateMany({
       where: { id: order.id, status: "PAID" },
-      data: { status: "SHIPPED", trackingNumber: awb, jntOrderId, shippedAt: new Date() },
+      data: {
+        status: "SHIPPED",
+        trackingNumber: awb,
+        courier: "J&T Express",
+        trackingUrl: jntTrackingUrl(awb),
+        jntOrderId,
+        shippedAt: new Date(),
+      },
     });
+    if (count) {
+      await sendShippedEmail(await db.order.findUniqueOrThrow({ where: { id: order.id } }));
+    }
   } catch (err) {
     console.error(err);
     error = err instanceof Error ? err.message : "Ralat tak diketahui";
@@ -98,7 +143,18 @@ export async function undoShipped(formData: FormData) {
 
   await db.order.updateMany({
     where: { id: orderId, status: "SHIPPED" },
-    data: { status: "PAID", trackingNumber: null, jntOrderId: null, shippedAt: null },
+    // Order EasyParcel yang dah dibayar tak boleh dibatalkan dari sini — batalkan di easyparcel.com.
+    data: {
+      status: "PAID",
+      trackingNumber: null,
+      courier: null,
+      trackingUrl: null,
+      labelUrl: null,
+      epOrderNo: null,
+      jntOrderId: null,
+      shippedAt: null,
+      emailedAt: null,
+    },
   });
   revalidatePath("/admin");
 }

@@ -37,5 +37,5 @@ Bila semua setting `JNT_*` diisi, setiap order "Perlu dipos" dalam `/admin` ada 
 dan tanda order sebagai dah dipos. Lepas tu boleh **Cetak label J&T** (PDF), dan
 "Batal tanda pos" akan batalkan consignment di J&T sekali.
 
-Tanpa setting J&T, admin masih boleh isi no. tracking sendiri macam biasa.
+Tanpa setting J&T, admin masih boleh pos guna EasyParcel atau isi no. tracking sendiri.
 Page terima kasih pelanggan tunjuk no. tracking dan pautan semak penghantaran.
