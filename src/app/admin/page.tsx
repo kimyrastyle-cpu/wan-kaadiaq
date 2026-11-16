@@ -4,10 +4,9 @@ import { Suspense } from "react";
 import type { Order } from "@prisma/client";
 import { isAdmin } from "@/lib/admin-auth";
 import { db } from "@/lib/db";
-import { jntConfigured } from "@/lib/jnt";
 import { PRODUCT, formatAddress, formatRM } from "@/lib/product";
 import { whatsappLink } from "@/lib/notify";
-import { createJntShipment, markShipped, resendShippedEmail, undoShipped } from "./actions";
+import { markShipped, resendShippedEmail, undoShipped } from "./actions";
 import { AdminNav } from "./admin-nav";
 import { LoginForm } from "./login-form";
 
@@ -49,13 +48,12 @@ async function AdminGate({
 }) {
   if (!(await isAdmin())) return <LoginForm />;
 
-  const { status, ralat } = await searchParams;
+  const { status } = await searchParams;
   const tab: TabKey = TABS.some((t) => t.key === status) ? (status as TabKey) : "PAID";
-  return <Dashboard tab={tab} error={typeof ralat === "string" ? ralat : undefined} />;
+  return <Dashboard tab={tab} />;
 }
 
-async function Dashboard({ tab, error }: { tab: TabKey; error?: string }) {
-  const jnt = jntConfigured();
+async function Dashboard({ tab }: { tab: TabKey }) {
   const [orders, counts, sold, toShipBySize] = await Promise.all([
     db.order.findMany({
       where: tab === "ALL" ? {} : { status: tab },
@@ -86,12 +84,6 @@ async function Dashboard({ tab, error }: { tab: TabKey; error?: string }) {
     <>
       <AdminNav current="order" />
       <h1 className="mt-6 text-2xl font-bold">Order baju</h1>
-
-      {error && (
-        <p role="alert" className="mt-4 rounded-lg border border-danger/40 px-4 py-3 text-sm text-danger">
-          {error}
-        </p>
-      )}
 
       <section className="mt-6 grid gap-3 sm:grid-cols-3">
         <Stat label="Jumlah jualan (dah bayar)" value={formatRM(sold._sum.amountCents ?? 0)} />
@@ -128,7 +120,7 @@ async function Dashboard({ tab, error }: { tab: TabKey; error?: string }) {
       ) : (
         <ul className="mt-4 space-y-3">
           {orders.map((o) => (
-            <OrderCard key={o.id} order={o} jnt={jnt} />
+            <OrderCard key={o.id} order={o} />
           ))}
         </ul>
       )}
@@ -152,7 +144,7 @@ const STATUS_LABEL: Record<string, { text: string; className: string }> = {
   FAILED: { text: "Gagal", className: "text-danger border-danger/40" },
 };
 
-function OrderCard({ order: o, jnt }: { order: Order; jnt: boolean }) {
+function OrderCard({ order: o }: { order: Order }) {
   const status = STATUS_LABEL[o.status] ?? STATUS_LABEL.PENDING;
   const showWhatsApp = o.status === "PAID" || o.status === "SHIPPED";
 
@@ -232,16 +224,6 @@ function OrderCard({ order: o, jnt }: { order: Order; jnt: boolean }) {
                 Cetak label (PDF)
               </a>
             )}
-            {o.jntOrderId && jnt && (
-              <a
-                href={`/admin/label?order=${o.id}`}
-                target="_blank"
-                rel="noreferrer"
-                className="rounded-full border border-line px-3 py-1.5 text-xs font-semibold hover:border-foreground"
-              >
-                Cetak label J&T (PDF)
-              </a>
-            )}
             {o.status === "SHIPPED" && !o.emailedAt && (
               <form action={resendShippedEmail}>
                 <input type="hidden" name="orderId" value={o.id} />
@@ -255,19 +237,9 @@ function OrderCard({ order: o, jnt }: { order: Order; jnt: boolean }) {
 
         {o.status === "PAID" && (
           <div className="flex flex-col gap-2 sm:w-56">
-            {jnt && (
-              <form action={createJntShipment}>
-                <input type="hidden" name="orderId" value={o.id} />
-                <button className="w-full whitespace-nowrap rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background">
-                  Buat consignment J&T
-                </button>
-              </form>
-            )}
             <Link
               href={`/admin/pos/${o.id}`}
-              className={`whitespace-nowrap rounded-full px-4 py-2 text-center text-sm font-semibold ${
-                jnt ? "border border-foreground" : "bg-foreground text-background"
-              }`}
+              className="whitespace-nowrap rounded-full bg-foreground px-4 py-2 text-center text-sm font-semibold text-background"
             >
               Pos guna EasyParcel
             </Link>

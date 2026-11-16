@@ -1,6 +1,6 @@
 # Wan Kaadiaq
 
-Website kedai baju dan booking barbershop. Next.js 16 + Prisma + Postgres, bayaran melalui CHIP, pos melalui J&T Express.
+Website kedai baju dan booking barbershop. Next.js 16 + Prisma + Postgres, bayaran melalui CHIP, pos melalui EasyParcel.
 
 ## Jalankan dalam PC
 
@@ -30,12 +30,12 @@ Isi `CHIP_SECRET_KEY` dan `CHIP_BRAND_ID` (portal CHIP → Developers) dalam `.e
 Tak perlu daftar webhook; callback dihantar terus ke `/api/chip/callback`.
 Status bayaran sentiasa disemak terus dengan CHIP, bukan dari isi callback.
 
-## Pos (J&T Express)
+## Pos (EasyParcel)
 
-Bila semua setting `JNT_*` diisi, setiap order "Perlu dipos" dalam `/admin` ada butang
-**Buat consignment J&T**. Ia cipta consignment di J&T, simpan no. AWB sebagai no. tracking,
-dan tanda order sebagai dah dipos. Lepas tu boleh **Cetak label J&T** (PDF), dan
-"Batal tanda pos" akan batalkan consignment di J&T sekali.
+Isi `EASYPARCEL_API_KEY` dan alamat pengirim `SHIP_FROM_*` dalam `.env` / Vercel. Setiap order
+"Perlu dipos" dalam `/admin` ada butang **Pos guna EasyParcel**: semak harga kurier, tempah
+dan bayar guna kredit EasyParcel, kemudian no. tracking, link tracking dan label PDF disimpan
+pada order. Admin juga boleh isi kurier dan no. tracking sendiri kalau pos di luar EasyParcel.
 
-Tanpa setting J&T, admin masih boleh pos guna EasyParcel atau isi no. tracking sendiri.
-Page terima kasih pelanggan tunjuk no. tracking dan pautan semak penghantaran.
+Bila order ditanda dah pos, pelanggan dapat email (Resend) dan page terima kasih mereka
+tunjuk no. tracking serta pautan semak penghantaran.

@@ -30,10 +30,9 @@ model Order {
   paymentProvider String? // CHIP (order lama: TOYYIBPAY)
   billCode        String?   @unique // kod bil ToyyibPay — order lama sahaja
   chipPurchaseId  String?   @unique // id purchase dari CHIP
-  trackingNumber  String? // no. tracking kurier (AWB J&T) bila dah pos
-  jntOrderId      String? // no. order yang dihantar ke J&T (untuk batal consignment)
+  trackingNumber  String? // no. tracking kurier bila dah pos
   courier         String? // nama kurier, contoh "J&T Express"
-  trackingUrl     String? // link semak tracking (EasyParcel / J&T)
+  trackingUrl     String? // link semak tracking (dari EasyParcel)
   labelUrl        String? // link PDF label / AWB (dari EasyParcel)
   epOrderNo       String? // no. order EasyParcel, contoh "EI-5UFAI"
   shippedAt       DateTime?

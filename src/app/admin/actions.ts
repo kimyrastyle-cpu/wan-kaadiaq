@@ -11,7 +11,6 @@ import {
 import { db } from "@/lib/db";
 import { bookShipment } from "@/lib/easyparcel";
 import { sendShippedEmail } from "@/lib/email";
-import { cancelJntOrder, createJntOrder, jntConfigured, jntTrackingUrl } from "@/lib/jnt";
 
 export type LoginState = { error: string | null };
 
@@ -88,58 +87,9 @@ export async function cancelBooking(formData: FormData) {
   revalidatePath("/admin/booking");
 }
 
-// Cipta consignment J&T untuk order yang dah dibayar; AWB jadi no. tracking.
-export async function createJntShipment(formData: FormData) {
-  await requireAdmin();
-  const orderId = String(formData.get("orderId") ?? "");
-
-  const order = await db.order.findUnique({ where: { id: orderId } });
-  if (!order || order.status !== "PAID" || !jntConfigured()) redirect("/admin");
-
-  let error = "";
-  try {
-    const { awb, jntOrderId } = await createJntOrder(order);
-    const { count } = await db.order.updateMany({
-      where: { id: order.id, status: "PAID" },
-      data: {
-        status: "SHIPPED",
-        trackingNumber: awb,
-        courier: "J&T Express",
-        trackingUrl: jntTrackingUrl(awb),
-        jntOrderId,
-        shippedAt: new Date(),
-      },
-    });
-    if (count) {
-      await sendShippedEmail(await db.order.findUniqueOrThrow({ where: { id: order.id } }));
-    }
-  } catch (err) {
-    console.error(err);
-    error = err instanceof Error ? err.message : "Ralat tak diketahui";
-  }
-
-  revalidatePath("/admin");
-  if (error) {
-    const ref = order.id.slice(-8).toUpperCase();
-    redirect(`/admin?status=PAID&ralat=${encodeURIComponent(`#${ref}: ${error}`.slice(0, 300))}`);
-  }
-}
-
 export async function undoShipped(formData: FormData) {
   await requireAdmin();
   const orderId = String(formData.get("orderId") ?? "");
-
-  // Kalau consignment dibuat melalui J&T, batalkan di J&T dulu.
-  const order = await db.order.findUnique({ where: { id: orderId } });
-  if (order?.status === "SHIPPED" && order.jntOrderId && order.trackingNumber && jntConfigured()) {
-    try {
-      await cancelJntOrder(order.trackingNumber, order.jntOrderId);
-    } catch (err) {
-      console.error(err);
-      const message = err instanceof Error ? err.message : "Ralat tak diketahui";
-      redirect(`/admin?status=SHIPPED&ralat=${encodeURIComponent(`Tak dapat batal di J&T: ${message}`.slice(0, 300))}`);
-    }
-  }
 
   await db.order.updateMany({
     where: { id: orderId, status: "SHIPPED" },
@@ -151,7 +101,6 @@ export async function undoShipped(formData: FormData) {
       trackingUrl: null,
       labelUrl: null,
       epOrderNo: null,
-      jntOrderId: null,
       shippedAt: null,
       emailedAt: null,
     },

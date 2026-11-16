@@ -8,7 +8,6 @@ export const PRODUCT = {
     "Official Exclusive Release Wan Kaadiaq. Baju hitam potongan oversized, logo kecil di dada dan cetakan lima garisan di belakang.",
   priceCents: 8900, // RM89.00
   postagePerItemCents: 800, // RM8.00 sehelai
-  weightKg: 0.25, // berat sehelai bersama bungkusan, untuk consignment J&T
   sizes: ["S", "M", "L", "XL", "XXL"] as const,
   maxQuantity: 10,
   images: [
