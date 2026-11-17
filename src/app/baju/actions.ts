@@ -2,12 +2,8 @@
 
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
+import { chipConfigured, startPayment, testPaymentAllowed } from "@/lib/payment";
 import { MY_STATES, PRODUCT, isSize, orderTotalCents } from "@/lib/product";
-import {
-  createBill,
-  testPaymentAllowed,
-  toyyibpayConfigured,
-} from "@/lib/toyyibpay";
 
 // Medan alamat yang dihantar balik bila ada error, supaya borang tak kosong semula.
 const ADDRESS_FIELDS = [
@@ -66,6 +62,8 @@ export async function createOrder(
     return fail("Nombor telefon tak sah (contoh 0123456789).");
   }
 
+  if (!chipConfigured() && !testPaymentAllowed()) return fail("Sistem bayaran belum disediakan.");
+
   // Harga dikira di server, bukan dari browser.
   const { total } = orderTotalCents(quantity);
 
@@ -87,15 +85,10 @@ export async function createOrder(
     },
   });
 
-  if (toyyibpayConfigured()) {
+  if (chipConfigured()) {
     let paymentUrl: string;
     try {
-      const bill = await createBill(order);
-      await db.order.update({
-        where: { id: order.id },
-        data: { billCode: bill.billCode },
-      });
-      paymentUrl = bill.paymentUrl;
+      paymentUrl = await startPayment(order);
     } catch (err) {
       console.error(err);
       return fail("Tak dapat sambung ke sistem bayaran. Cuba lagi sebentar.");
@@ -103,14 +96,10 @@ export async function createOrder(
     redirect(paymentUrl);
   }
 
-  if (testPaymentAllowed()) {
-    redirect(`/baju/bayar-test?order=${order.id}`);
-  }
-
-  return fail("Sistem bayaran belum disediakan.");
+  redirect(`/baju/bayar-test?order=${order.id}`);
 }
 
-// Hanya untuk mod test (tiada key ToyyibPay, bukan production).
+// Hanya untuk mod test (tiada key CHIP, bukan production).
 export async function completeTestPayment(formData: FormData) {
   if (!testPaymentAllowed()) throw new Error("Mod test tidak dibenarkan.");
 

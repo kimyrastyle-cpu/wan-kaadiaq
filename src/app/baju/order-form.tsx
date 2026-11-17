@@ -201,7 +201,7 @@ export function OrderForm() {
         disabled={pending}
         className="w-full rounded-full bg-foreground py-3.5 text-sm font-semibold text-background hover:opacity-90 disabled:opacity-50"
       >
-        {pending ? "Sedang proses…" : `Bayar ${formatRM(total)} (FPX / Kad)`}
+        {pending ? "Sedang proses…" : `Bayar ${formatRM(total)} (FPX / Kad / e-Wallet)`}
       </button>
     </form>
   );

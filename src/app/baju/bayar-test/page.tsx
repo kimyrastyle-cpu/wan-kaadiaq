@@ -2,10 +2,10 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { db } from "@/lib/db";
 import { formatRM } from "@/lib/product";
-import { testPaymentAllowed } from "@/lib/toyyibpay";
+import { testPaymentAllowed } from "@/lib/payment";
 import { completeTestPayment } from "../actions";
 
-// Page bayaran palsu untuk test semasa development (sebelum ada key ToyyibPay).
+// Page bayaran palsu untuk test semasa development (sebelum ada key CHIP).
 export default function BayarTestPage({
   searchParams,
 }: PageProps<"/baju/bayar-test">) {
