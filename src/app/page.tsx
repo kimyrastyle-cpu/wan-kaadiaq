@@ -25,7 +25,7 @@ export default function Home() {
           <div className="mt-8 flex flex-wrap items-center gap-6">
             <Link
               href="/baju"
-              className="rounded-full bg-foreground px-7 py-3 text-sm font-semibold text-background hover:opacity-90"
+              className="bg-foreground px-8 py-4 text-xs font-bold uppercase tracking-[0.2em] text-background transition hover:opacity-90"
             >
               Beli sekarang — {formatRM(PRODUCT.priceCents)}
             </Link>
@@ -45,7 +45,7 @@ export default function Home() {
           </div>
           <Link
             href="/booking"
-            className="shrink-0 rounded-full border border-foreground px-7 py-3 text-sm font-semibold hover:bg-foreground hover:text-background"
+            className="shrink-0 border border-foreground px-8 py-4 text-xs font-bold uppercase tracking-[0.2em] transition hover:bg-foreground hover:text-background"
           >
             Book sekarang
           </Link>
