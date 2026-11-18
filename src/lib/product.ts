@@ -1,18 +1,18 @@
 // Maklumat baju. Tukar di sini kalau harga / size berubah.
-export const BRAND = "Wan Kaadiaq";
+export const BRAND = "Wan Kadiaaaq";
 
 export const PRODUCT = {
   name: "Five Times • One Purpose",
   tagline: "Five Times • One Purpose",
   description:
-    "Official Exclusive Release Wan Kaadiaq. Baju hitam potongan oversized, logo kecil di dada dan cetakan lima garisan di belakang.",
+    "Official Exclusive Release Wan Kadiaaaq. Baju hitam potongan oversized, logo kecil di dada dan cetakan lima garisan di belakang.",
   priceCents: 8900, // RM89.00
   postagePerItemCents: 800, // RM8.00 sehelai
   sizes: ["S", "M", "L", "XL", "XXL"] as const,
   maxQuantity: 10,
   images: [
-    { src: "/baju-depan.jpg", alt: "Baju Wan Kaadiaq — depan" },
-    { src: "/baju-belakang.jpg", alt: "Baju Wan Kaadiaq — belakang" },
+    { src: "/baju-depan.jpg", alt: "Baju Wan Kadiaaaq — depan" },
+    { src: "/baju-belakang.jpg", alt: "Baju Wan Kadiaaaq — belakang" },
   ],
   video: { src: "/baju-promo.mp4", poster: "/baju-promo-poster.jpg" },
 };

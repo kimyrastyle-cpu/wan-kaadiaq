@@ -1,4 +1,4 @@
-# Wan Kaadiaq
+# Wan Kadiaaaq
 
 Website kedai baju dan booking barbershop. Next.js 16 + Prisma + Postgres, bayaran melalui CHIP, pos melalui EasyParcel.
 
